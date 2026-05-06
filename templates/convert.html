@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>格式转换 - 3D 模型处理工具</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="default-theme">
+    <script>loadAndApplyTheme();</script>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>3D Model Tool</h1>
+                <p>专业的 3D 模型处理工具</p>
+            </div>
+
+            <div class="nav-links">
+                <a href="/" class="nav-link">🏠 首页</a>
+                <a href="/viewer" class="nav-link">📊 模型查看</a>
+                <a href="/simplify" class="nav-link">⚡ 模型简化</a>
+                <a href="/convert" class="nav-link active">🔄 格式转换</a>
+                <a href="/step" class="nav-link">📐 STEP 分析</a>
+                <a href="/theme" class="nav-link">🎭 主题设置</a>
+                <a href="#" class="nav-link" id="helpBtn">❓ 帮助</a>
+            </div>
+            <div class="sidebar-resizer" id="sidebarResizer"></div>
+        </div>
+
+        <div class="viewer">
+            <div class="page-tips">
+                <div class="tips-header">📋 操作步骤</div>
+                <div class="tips-steps">
+                    <div class="tips-step"><span class="step-num">1</span><span>上传3D模型文件</span></div>
+                    <div class="tips-step"><span class="step-num">2</span><span>选择输出格式（可多选）</span></div>
+                    <div class="tips-step"><span class="step-num">3</span><span>设置文件名（可选）</span></div>
+                    <div class="tips-step"><span class="step-num">4</span><span>点击"转换并下载"</span></div>
+                </div>
+                <div class="tips-formats">
+                    <span class="formats-label">📦 支持格式：</span>
+                    <div class="formats-row">
+                        <span class="format-tag">输入: 3MF, OBJ, STL, STEP</span>
+                        <span class="format-tag output">输出: STL, OBJ, 3MF</span>
+                    </div>
+                </div>
+            </div>
+            <div class="convert-content">
+                <div class="page-header">
+                    <h1>🔄 格式转换</h1>
+                </div>
+
+                <div class="convert-grid">
+                    <div class="convert-card">
+                        <div class="card-header">
+                            <div class="card-icon upload">📁</div>
+                            <span class="card-title">上传文件</span>
+                        </div>
+                        <input type="file" id="convertFileInput" accept=".3mf,.obj,.stl,.step,.stp" style="display: none;">
+                        <div id="uploadArea" class="upload-zone">
+                            <div class="upload-icon">📂</div>
+                            <div class="upload-text">拖放文件到此处上传</div>
+                            <div class="upload-subtext">或点击下方按钮选择文件</div>
+                            <button id="convertBtn" class="btn-primary" style="margin-top: 20px;">
+                                <span>📁</span> 选择文件
+                            </button>
+                        </div>
+                        <div id="selectedFileName" class="file-info">
+                            未选择文件
+                        </div>
+                    </div>
+
+                    <div class="convert-card">
+                        <div class="card-header">
+                            <div class="card-icon display">📥</div>
+                            <span class="card-title">输入格式</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="label-text">检测到的格式</div>
+                            <select id="inputFormat" disabled class="form-select">
+                                <option value="">自动检测</option>
+                                <option value="stl">STL</option>
+                                <option value="obj">OBJ</option>
+                                <option value="3mf">3MF</option>
+                                <option value="step">STEP</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="convert-card">
+                        <div class="card-header">
+                            <div class="card-icon display">📤</div>
+                            <span class="card-title">输出格式</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="label-text">选择输出格式</div>
+                            <div class="format-options">
+                                <label class="format-option">
+                                    <input type="checkbox" class="outputFormatCheckbox" value="stl" checked>
+                                    <span>STL</span>
+                                </label>
+                                <label class="format-option">
+                                    <input type="checkbox" class="outputFormatCheckbox" value="obj" checked>
+                                    <span>OBJ</span>
+                                </label>
+                                <label class="format-option">
+                                    <input type="checkbox" class="outputFormatCheckbox" value="3mf" checked>
+                                    <span>3MF</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="convert-card">
+                        <div class="card-header">
+                            <div class="card-icon display">⚙️</div>
+                            <span class="card-title">文件命名</span>
+                        </div>
+                        <div class="card-content">
+                            <input type="text" id="convertFileName" placeholder="输入文件名（可选）" class="form-input">
+                            <div class="name-options">
+                                <label class="name-option">
+                                    <input type="radio" name="convertNameMode" value="original" checked>
+                                    <span>原文件名</span>
+                                </label>
+                                <label class="name-option">
+                                    <input type="radio" name="convertNameMode" value="date">
+                                    <span>原文件名+日期</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="convert-action">
+                    <button id="convertAllBtn" class="btn-primary btn-large">
+                        <span>🔄</span> 转换并下载所有格式
+                    </button>
+                    <div id="convertStatus" class="status-area"></div>
+                    <div id="convertProgress" class="progress-container" style="display: none;">
+                        <div class="progress-label">正在转换...</div>
+                        <div class="progress-bar">
+                            <div id="progressFill" class="progress-fill"></div>
+                        </div>
+                        <div id="progressText" class="progress-text">0%</div>
+                    </div>
+                </div>
+
+                <div class="format-info">
+                    <div class="format-section">
+                        <div class="format-title">📥 支持输入格式</div>
+                        <div class="format-tags">
+                            <span class="format-tag">STL</span>
+                            <span class="format-tag">OBJ</span>
+                            <span class="format-tag">3MF</span>
+                            <span class="format-tag">STEP</span>
+                        </div>
+                    </div>
+                    <div class="format-section">
+                        <div class="format-title">📤 输出格式</div>
+                        <div class="format-tags">
+                            <span class="format-tag output">STL</span>
+                            <span class="format-tag output">OBJ</span>
+                            <span class="format-tag output">3MF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .sidebar-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: col-resize;
+            z-index: 10;
+            transition: background-color 0.2s ease;
+        }
+
+        .sidebar-resizer:hover,
+        .sidebar-resizer.dragging {
+            background-color: var(--primary-color);
+        }
+
+        .sidebar-resizer::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 40px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-resizer:hover::before,
+        .sidebar-resizer.dragging::before {
+            background-color: var(--primary-color);
+            height: 60px;
+        }
+
+        body.dragging {
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        .convert-content {
+            padding: 40px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .convert-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            width: 100%;
+            margin: 0 auto 32px auto;
+        }
+
+        .convert-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .card-content {
+            padding: 0 8px;
+        }
+
+        .label-text {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 18px 22px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 18px 22px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-zone.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .upload-subtext {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .file-info {
+            margin-top: 16px;
+            padding: 16px 18px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .format-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .format-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 18px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .format-option:hover {
+            border-color: var(--primary-color);
+        }
+
+        .format-option:has(input:checked) {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .format-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .format-option span {
+            font-size: 1.15rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .name-options {
+            display: flex;
+            gap: 24px;
+        }
+
+        .name-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .name-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .name-option span {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .convert-action {
+            width: 100%;
+            margin: 0 auto 32px auto;
+            text-align: center;
+        }
+
+        .btn-large {
+            font-size: 1.3rem;
+            padding: 20px 40px;
+        }
+
+        .status-area {
+            margin-top: 16px;
+        }
+
+        .format-info {
+            width: 100%;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .format-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .format-title {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .format-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .format-tag {
+            font-size: 1rem;
+            padding: 8px 18px;
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-radius: 6px;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+        }
+
+        .format-tag.output {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .progress-container {
+            margin-top: 24px;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .progress-label {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: var(--bg-dark);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #a855f7);
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            margin-top: 8px;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        .page-tips {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 10;
+            min-width: 240px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .tips-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tips-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tips-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .step-num {
+            width: 22px;
+            height: 22px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .tips-formats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .formats-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .formats-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .formats-row .format-tag {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            color: var(--text-secondary);
+        }
+
+        .formats-row .format-tag.output {
+            background: rgba(34, 197, 94, 0.15);
+            color: #22c55e;
+        }
+
+    </style>
+
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const convertBtn = document.getElementById('convertBtn');
+            const convertFileInput = document.getElementById('convertFileInput');
+            const uploadArea = document.getElementById('uploadArea');
+            const selectedFileName = document.getElementById('selectedFileName');
+            const progressContainer = document.getElementById('convertProgress');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            convertBtn.addEventListener('click', () => convertFileInput.click());
+            uploadArea.addEventListener('click', (e) => {
+                if (e.target !== convertBtn) convertFileInput.click();
+            });
+
+            convertFileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    selectedFileName.textContent = `已选择: ${this.files[0].name}`;
+                    selectedFileName.style.color = 'var(--text-primary)';
+                    document.getElementById('inputFormat').value = this.files[0].name.split('.').pop().toLowerCase();
+                } else {
+                    selectedFileName.textContent = '未选择文件';
+                    selectedFileName.style.color = 'var(--text-secondary)';
+                    document.getElementById('inputFormat').value = '';
+                }
+            });
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+            });
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    convertFileInput.files = files;
+                    selectedFileName.textContent = `已选择: ${files[0].name}`;
+                    selectedFileName.style.color = 'var(--text-primary)';
+                    document.getElementById('inputFormat').value = files[0].name.split('.').pop().toLowerCase();
+                }
+            });
+
+            function updateProgress(percent, label) {
+                progressFill.style.width = `${percent}%`;
+                progressText.textContent = `${percent}%`;
+                if (label) {
+                    document.querySelector('.progress-label').textContent = label;
+                }
+            }
+
+            document.getElementById('convertAllBtn').addEventListener('click', function() {
+                const fileInput = document.getElementById('convertFileInput');
+                const statusDiv = document.getElementById('convertStatus');
+                
+                if (fileInput.files.length === 0) {
+                    statusDiv.innerHTML = '<div class="status-message status-error">请先选择要转换的文件</div>';
+                    return;
+                }
+
+                const outputFormats = [];
+                document.querySelectorAll('.outputFormatCheckbox').forEach(cb => {
+                    if (cb.checked) outputFormats.push(cb.value);
+                });
+                
+                if (outputFormats.length === 0) {
+                    statusDiv.innerHTML = '<div class="status-message status-error">请至少选择一种输出格式</div>';
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                outputFormats.forEach(format => {
+                    formData.append('output_formats[]', format);
+                });
+                
+                const fileNameInput = document.getElementById('convertFileName');
+                if (fileNameInput.value.trim()) {
+                    formData.append('custom_name', fileNameInput.value.trim());
+                }
+                formData.append('name_mode', document.querySelector('input[name="convertNameMode"]:checked').value);
+
+                // 显示进度条
+                progressContainer.style.display = 'block';
+                updateProgress(0, '正在准备转换...');
+                statusDiv.innerHTML = '';
+
+                const total = outputFormats.length;
+                let current = 0;
+
+                fetch('/convert', {
+                    method: 'POST',
+                    body: formData
+                }).then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        // 模拟进度更新
+                        const updateInterval = setInterval(() => {
+                            current++;
+                            const percent = Math.min((current / total) * 100, 95);
+                            const formatName = current <= total ? outputFormats[current - 1] || '' : '';
+                            updateProgress(Math.round(percent), `正在转换 ${formatName.toUpperCase()}...`);
+                            
+                            if (current >= total) {
+                                clearInterval(updateInterval);
+                            }
+                        }, 400);
+
+                        setTimeout(() => {
+                            updateProgress(100, '转换完成！');
+                            statusDiv.innerHTML = '<div class="status-message status-success">转换成功！正在下载文件...</div>';
+                            
+                            const filesToDownload = data.results || [];
+                            filesToDownload.forEach((r, i) => {
+                                setTimeout(() => {
+                                    const link = document.createElement('a');
+                                    link.href = `/outputs/${r.file}`;
+                                    link.download = r.friendlyName || r.file;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                }, i * 300);
+                            });
+
+                            setTimeout(() => {
+                                statusDiv.innerHTML = '';
+                                progressContainer.style.display = 'none';
+                            }, 3000);
+                        }, total * 500 + 1000);
+                    } else {
+                        progressContainer.style.display = 'none';
+                        statusDiv.innerHTML = `<div class="status-message status-error">转换失败: ${data.error}</div>`;
+                    }
+                }).catch(e => {
+                    progressContainer.style.display = 'none';
+                    statusDiv.innerHTML = `<div class="status-message status-error">转换失败: ${e.message}</div>`;
+                });
+            });
+        });
+    </script>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ 帮助指南</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="help-card">
+                    <h3>📊 模型查看</h3>
+                    <p>支持拖放或点击上传 STL、OBJ、3MF、PLY、OFF、DAE、GLTF、STEP/STP 等格式的3D模型文件。</p>
+                    <ul>
+                        <li>上传后可在3D视图中旋转、缩放模型</li>
+                        <li>可切换线框模式和包围盒显示</li>
+                        <li>支持模型信息显示</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>⚡ 模型简化</h3>
+                    <p>减少3D模型的面数，同时尽量保持模型外观。</p>
+                    <ul>
+                        <li>调整简化比例（0.1 - 0.9）</li>
+                        <li>数值越小，简化程度越高</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🔄 格式转换</h3>
+                    <p>将3D模型从一种格式转换为另一种格式。</p>
+                    <ul>
+                        <li>支持输入：3MF, OBJ, STL, STEP, STP</li>
+                        <li>支持输出：STL, OBJ, 3MF</li>
+                        <li>可自定义输出文件名</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>📐 STEP 分析</h3>
+                    <p>上传 STEP 文件进行面分析和模型查看。</p>
+                    <ul>
+                        <li>查看模型所有面的面积</li>
+                        <li>点击面可查看几何信息</li>
+                        <li>支持导出为 GLTF/GLB 格式</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🎭 主题设置</h3>
+                    <p>自定义界面外观主题。</p>
+                    <ul>
+                        <li>支持浅色/深色模式切换</li>
+                        <li>可自定义主题颜色</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('helpModal');
+        var helpBtn = document.getElementById('helpBtn');
+        var closeBtn = modal.querySelector('.close');
+
+        if (helpBtn && modal) {
+            helpBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.style.display = 'block';
+            });
+
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(e) {
+                if (e.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const resizer = document.getElementById('sidebarResizer');
+        let isDragging = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const minWidth = 280;
+        const maxWidth = 600;
+
+        resizer.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startWidth = sidebar.offsetWidth;
+            resizer.classList.add('dragging');
+            document.body.classList.add('dragging');
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+            e.preventDefault();
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - startX;
+            let newWidth = startWidth + deltaX;
+
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+            sidebar.style.width = newWidth + 'px';
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            resizer.classList.remove('dragging');
+            document.body.classList.remove('dragging');
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    });
+    </script>
+</body>
+</html>

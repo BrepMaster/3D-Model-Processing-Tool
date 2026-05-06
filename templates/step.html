@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEP 文件分析 - 3D 模型处理工具</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</head>
+<body class="default-theme">
+    <script>loadAndApplyTheme();</script>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>3D Model Tool</h1>
+                <p>专业的 3D 模型处理工具</p>
+            </div>
+
+            <div class="nav-links">
+                <a href="/" class="nav-link">🏠 首页</a>
+                <a href="/viewer" class="nav-link">📊 模型查看</a>
+                <a href="/simplify" class="nav-link">⚡ 模型简化</a>
+                <a href="/convert" class="nav-link">🔄 格式转换</a>
+                <a href="/step" class="nav-link active">📐 STEP 分析</a>
+                <a href="/theme" class="nav-link">🎭 主题设置</a>
+                <a href="#" class="nav-link" id="helpBtn">❓ 帮助</a>
+            </div>
+            <div class="sidebar-resizer" id="sidebarResizer"></div>
+
+            <div id="stepTab" class="tab-content active">
+                <!-- 上传区域卡片 -->
+                <div class="step-card">
+                    <div class="step-card-header">
+                        <div class="step-card-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div class="step-card-title-row">
+                            <span class="step-card-title">上传 STEP 文件</span>
+                            <span class="step-card-subtitle">支持 .step / .stp 格式</span>
+                        </div>
+                    </div>
+                    <input type="file" id="stepFileInput" accept=".step,.stp" style="display: none;" onchange="handleFileSelect(this);">
+                    <div id="uploadArea" class="upload-card">
+                        <div class="upload-icon-wrapper">
+                            <div class="upload-icon-bg"></div>
+                            <svg class="upload-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <div class="upload-text">拖放 STEP 文件到此处</div>
+                        <div class="upload-hint">或点击下方按钮选择文件</div>
+                        <button id="uploadBtn" class="btn-primary-glow">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            选择文件
+                        </button>
+                    </div>
+                    <div id="uploadStatus" class="status-message"></div>
+                </div>
+
+                <!-- 文件信息卡片 -->
+                <div class="step-card" id="fileInfo" style="display: none;">
+                    <div class="step-card-header">
+                        <div class="step-card-icon info-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                        </div>
+                        <span class="step-card-title">文件信息</span>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                <span>文件名</span>
+                            </div>
+                            <div class="info-value" id="infoFileName">-</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="16 10 10 16 8 14"></polyline>
+                                </svg>
+                                <span>状态</span>
+                            </div>
+                            <div class="info-value status-success" id="infoStatus">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 颜色设置卡片 -->
+                <div class="step-card">
+                    <div class="step-card-header">
+                        <div class="step-card-icon color-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="4"></circle>
+                                <line x1="21.73" y1="8" x2="12" y2="8"></line>
+                                <line x1="12" y1="8" x2="12" y2="3.67"></line>
+                                <line x1="3.5" y1="12" x2="8" y2="12"></line>
+                                <line x1="8" y1="12" x2="8" y2="12"></line>
+                                <line x1="20.48" y1="15.95" x2="15.05" y2="15.95"></line>
+                                <line x1="15.05" y1="15.95" x2="15.05" y2="20.38"></line>
+                            </svg>
+                        </div>
+                        <span class="step-card-title">颜色设置</span>
+                    </div>
+                    <div class="color-preview-section">
+                        <div class="color-preview-box" id="colorPreview"></div>
+                        <div class="color-values">
+                            <div class="color-hex-value" id="colorHex">#B4B4B4</div>
+                            <div class="color-rgb-value" id="colorRgb">RGB(180, 180, 180)</div>
+                        </div>
+                    </div>
+                    <div class="slider-section">
+                        <div class="slider-item">
+                            <div class="slider-label">
+                                <span class="slider-color-dot" style="background: #ef4444;"></span>
+                                <span>R</span>
+                            </div>
+                            <input type="range" id="colorR" min="0" max="255" value="180" class="color-slider">
+                            <span class="slider-value" id="colorRValue">180</span>
+                        </div>
+                        <div class="slider-item">
+                            <div class="slider-label">
+                                <span class="slider-color-dot" style="background: #22c55e;"></span>
+                                <span>G</span>
+                            </div>
+                            <input type="range" id="colorG" min="0" max="255" value="180" class="color-slider">
+                            <span class="slider-value" id="colorGValue">180</span>
+                        </div>
+                        <div class="slider-item">
+                            <div class="slider-label">
+                                <span class="slider-color-dot" style="background: #3b82f6;"></span>
+                                <span>B</span>
+                            </div>
+                            <input type="range" id="colorB" min="0" max="255" value="180" class="color-slider">
+                            <span class="slider-value" id="colorBValue">180</span>
+                        </div>
+                    </div>
+                    <div class="color-actions">
+                        <button id="applyColorBtn" class="btn-action btn-apply">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 6L9 17l-5-5"></path>
+                            </svg>
+                            应用颜色
+                        </button>
+                        <button id="resetColorBtn" class="btn-action btn-reset">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                <path d="M3 3v5h5"></path>
+                            </svg>
+                            重置颜色
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 面面积信息卡片 -->
+                <div class="step-card" id="faceAreasCard" style="display: none;">
+                    <div class="step-card-header">
+                        <div class="step-card-icon area-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                            </svg>
+                        </div>
+                        <div class="step-card-title-row">
+                            <span class="step-card-title">面面积信息</span>
+                            <span class="step-card-badge" id="faceCountBadge">0 个面</span>
+                        </div>
+                    </div>
+                    <div class="search-input-wrapper">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="M21 21l-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" id="faceSearch" placeholder="搜索面编号或面积..." class="search-input">
+                    </div>
+                    <div id="faceAreasList" class="list-container"></div>
+                    <button id="exportAreasBtn" class="btn-export">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        导出面积数据
+                    </button>
+                </div>
+
+                <!-- 零件颜色信息卡片 -->
+                <div class="step-card" id="facesInfoCard" style="display: none;">
+                    <div class="step-card-header">
+                        <div class="step-card-icon parts-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <div class="step-card-title-row">
+                            <span class="step-card-title">零件颜色信息</span>
+                            <span class="step-card-badge" id="partCountBadge">0 个零件</span>
+                        </div>
+                    </div>
+                    <div id="facesInfoList" class="parts-list-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="viewer">
+            <div class="page-tips">
+                <div class="tips-header">📋 操作步骤</div>
+                <div class="tips-steps">
+                    <div class="tips-step"><span class="step-num">1</span><span>上传STEP/STP文件</span></div>
+                    <div class="tips-step"><span class="step-num">2</span><span>等待模型加载分析</span></div>
+                    <div class="tips-step"><span class="step-num">3</span><span>查看面面积列表</span></div>
+                    <div class="tips-step"><span class="step-num">4</span><span>点击面查看几何信息</span></div>
+                    <div class="tips-step"><span class="step-num">5</span><span>调整颜色并导出</span></div>
+                </div>
+                <div class="tips-controls">
+                    <span class="control-tip">🖱️ 左键：旋转</span>
+                    <span class="control-tip">🖱️ 右键：平移</span>
+                    <span class="control-tip">🔲 滚轮：缩放</span>
+                </div>
+            </div>
+            <div id="canvasContainer"></div>
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="loading-content">
+                    <div class="loading-ring"></div>
+                    <div class="loading-text">加载中...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .sidebar-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: col-resize;
+            z-index: 10;
+            transition: background-color 0.2s ease;
+        }
+
+        .sidebar-resizer:hover,
+        .sidebar-resizer.dragging {
+            background-color: var(--primary-color);
+        }
+
+        .sidebar-resizer::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 40px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-resizer:hover::before,
+        .sidebar-resizer.dragging::before {
+            background-color: var(--primary-color);
+            height: 60px;
+        }
+
+        body.dragging {
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        /* 卡片基础样式 */
+        .step-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .step-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.1);
+        }
+
+        .step-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .step-card-title-row {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .step-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .step-card-icon.info-icon {
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+
+        .step-card-icon.color-icon {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        .step-card-icon.area-icon {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .step-card-icon.parts-icon {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        .step-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .step-card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .step-card-badge {
+            padding: 4px 12px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--primary-color);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* 上传卡片 */
+        .upload-card {
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 28px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-card:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        .upload-card.drag-over {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .upload-icon-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .upload-icon-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .upload-icon {
+            color: var(--primary-color);
+            position: relative;
+            z-index: 1;
+            animation: float-icon 3s ease-in-out infinite;
+        }
+
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+        }
+
+        .upload-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .btn-primary-glow {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary-glow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        /* 状态消息 */
+        .status-message {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .status-message.status-success {
+            display: block;
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+        }
+
+        .status-message.status-error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+        }
+
+        .status-message.status-info {
+            display: block;
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+        }
+
+        /* 信息网格 */
+        .info-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            background: var(--bg-dark);
+            border-radius: 12px;
+        }
+
+        .info-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            word-break: break-all;
+            max-width: 180px;
+            text-align: right;
+        }
+
+        .info-value.status-success {
+            color: #22c55e;
+        }
+
+        /* 颜色预览区域 */
+        .color-preview-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px;
+            background: var(--bg-dark);
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+
+        .color-preview-box {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            background: rgb(180, 180, 180);
+            border: 2px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+        }
+
+        .color-values {
+            flex: 1;
+        }
+
+        .color-hex-value {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        .color-rgb-value {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* 滑块区域 */
+        .slider-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .slider-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 36px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .slider-color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .color-slider {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--bg-dark);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .color-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+            transition: all 0.2s;
+        }
+
+        .color-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .slider-value {
+            width: 36px;
+            text-align: right;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* 颜色操作按钮 */
+        .color-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-apply {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-reset {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-reset:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* 搜索框 */
+        .search-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+
+        .search-input-wrapper:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* 列表容器 */
+        .list-container {
+            max-height: 220px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        /* 面面积列表项 */
+        .face-area-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 14px;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .face-area-item:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.08);
+            transform: translateX(4px);
+        }
+
+        .face-area-item.highlighted {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08));
+            box-shadow: 0 0 16px rgba(99, 102, 241, 0.15);
+        }
+
+        .face-area-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .face-number-badge {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: white;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .face-area-label {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .face-area-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        /* 导出按钮 */
+        .btn-export {
+            width: 100%;
+            padding: 12px 20px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 14px rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.4);
+        }
+
+        /* 零件列表 */
+        .parts-list-container {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .face-info-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .face-info-item:hover {
+            border-color: var(--primary-color);
+            transform: translateX(4px);
+        }
+
+        .face-info-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .face-color-preview {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .face-name {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .face-rgb-value {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        /* 加载覆盖层 */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 100;
+        }
+
+        .loading-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .loading-ring {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 滚动条样式 */
+        .list-container::-webkit-scrollbar,
+        .parts-list-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .list-container::-webkit-scrollbar-track,
+        .parts-list-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .list-container::-webkit-scrollbar-thumb,
+        .parts-list-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .list-container::-webkit-scrollbar-thumb:hover,
+        .parts-list-container::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        .page-tips {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 10;
+            min-width: 220px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .tips-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tips-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tips-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .step-num {
+            width: 22px;
+            height: 22px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .tips-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .control-tip {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            color: var(--text-secondary);
+        }
+    </style>
+
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="{{ url_for('static', filename='js/step.js') }}"></script>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ 帮助指南</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="help-card">
+                    <h3>📊 模型查看</h3>
+                    <p>支持拖放或点击上传 STL、OBJ、3MF、PLY、OFF、DAE、GLTF、STEP/STP 等格式的3D模型文件。</p>
+                    <ul>
+                        <li>上传后可在3D视图中旋转、缩放模型</li>
+                        <li>可切换线框模式和包围盒显示</li>
+                        <li>支持模型信息显示</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>⚡ 模型简化</h3>
+                    <p>减少3D模型的面数，同时尽量保持模型外观。</p>
+                    <ul>
+                        <li>调整简化比例（0.1 - 0.9）</li>
+                        <li>数值越小，简化程度越高</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🔄 格式转换</h3>
+                    <p>将3D模型从一种格式转换为另一种格式。</p>
+                    <ul>
+                        <li>支持输入：3MF, OBJ, STL, STEP, STP</li>
+                        <li>支持输出：STL, OBJ, 3MF</li>
+                        <li>可自定义输出文件名</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>📐 STEP 分析</h3>
+                    <p>上传 STEP 文件进行面分析和模型查看。</p>
+                    <ul>
+                        <li>查看模型所有面的面积</li>
+                        <li>点击面可查看几何信息</li>
+                        <li>支持导出为 GLTF/GLB 格式</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🎭 主题设置</h3>
+                    <p>自定义界面外观主题。</p>
+                    <ul>
+                        <li>支持浅色/深色模式切换</li>
+                        <li>可自定义主题颜色</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('helpModal');
+        var helpBtn = document.getElementById('helpBtn');
+        var closeBtn = modal.querySelector('.close');
+
+        if (helpBtn && modal) {
+            helpBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.style.display = 'block';
+            });
+
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(e) {
+                if (e.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const resizer = document.getElementById('sidebarResizer');
+        let isDragging = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const minWidth = 280;
+        const maxWidth = 600;
+
+        resizer.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startWidth = sidebar.offsetWidth;
+            resizer.classList.add('dragging');
+            document.body.classList.add('dragging');
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+            e.preventDefault();
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - startX;
+            let newWidth = startWidth + deltaX;
+
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+            sidebar.style.width = newWidth + 'px';
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            resizer.classList.remove('dragging');
+            document.body.classList.remove('dragging');
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    });
+    </script>
+</body>
+</html>

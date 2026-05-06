@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型简化 - 3D 模型处理工具</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</head>
+<body class="default-theme">
+    <script>loadAndApplyTheme();</script>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>3D Model Tool</h1>
+                <p>专业的 3D 模型处理工具</p>
+            </div>
+
+            <div class="nav-links">
+                <a href="/" class="nav-link">🏠 首页</a>
+                <a href="/viewer" class="nav-link">📊 模型查看</a>
+                <a href="/simplify" class="nav-link active">⚡ 模型简化</a>
+                <a href="/convert" class="nav-link">🔄 格式转换</a>
+                <a href="/step" class="nav-link">📐 STEP 分析</a>
+                <a href="/theme" class="nav-link">🎭 主题设置</a>
+                <a href="#" class="nav-link" id="helpBtn">❓ 帮助</a>
+            </div>
+            <div class="sidebar-resizer" id="sidebarResizer"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon upload">📁</div>
+                    <span class="card-title">上传模型</span>
+                </div>
+                <input type="file" id="fileInput" accept=".stl,.obj,.3mf,.ply,.off,.dae,.gltf,.step,.stp,.bin" multiple style="display: none;">
+                <div id="uploadArea" class="upload-zone">
+                    <div class="upload-icon">📂</div>
+                    <div class="upload-text">拖放文件到此处上传</div>
+                    <div class="upload-subtext">或点击下方按钮选择文件</div>
+                    <button id="uploadBtn" class="btn-primary">
+                        <span>📁</span> 选择并上传文件
+                    </button>
+                </div>
+                <div class="format-section">
+                    <div class="format-header">📁 支持格式：</div>
+                    <div class="format-tags">
+                        <span class="format-tag">STL</span>
+                        <span class="format-tag">OBJ</span>
+                        <span class="format-tag">3MF</span>
+                        <span class="format-tag">PLY</span>
+                        <span class="format-tag">OFF</span>
+                        <span class="format-tag">DAE</span>
+                        <span class="format-tag">GLTF</span>
+                        <span class="format-tag">STEP</span>
+                    </div>
+                        <div class="format-hint">💡 支持多文件上传！可以同时选择.gltf和.bin文件</div>
+                </div>
+                <div id="uploadStatus"></div>
+                <div id="uploadProgressContainer" style="display: none; margin-top: 12px;">
+                    <div class="progress-info">
+                        <span id="progressText">上传中: 0%</span>
+                        <span id="progressSize">0 KB / 0 KB</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="comparisonSection" style="display: none;">
+                <div class="card-header">
+                    <div class="card-icon display">📊</div>
+                    <span class="card-title">模型对比</span>
+                </div>
+
+                <div class="compare-grid">
+                    <div class="compare-item">
+                        <div class="compare-label">文件大小</div>
+                        <div class="compare-values">
+                            <span class="value-original" id="compareFileSize">-</span>
+                            <span class="value-arrow">→</span>
+                            <span class="value-simplified" id="compareSimplifiedFileSize">-</span>
+                        </div>
+                        <div class="compare-change" id="compareSizeChange">-</div>
+                    </div>
+
+                    <div class="compare-item">
+                        <div class="compare-label">顶点数</div>
+                        <div class="compare-values">
+                            <span class="value-original" id="compareVertices">-</span>
+                            <span class="value-arrow">→</span>
+                            <span class="value-simplified" id="compareSimplifiedVertices">-</span>
+                        </div>
+                        <div class="compare-change" id="compareVertexChange">-</div>
+                    </div>
+
+                    <div class="compare-item">
+                        <div class="compare-label">面数</div>
+                        <div class="compare-values">
+                            <span class="value-original" id="compareFaces">-</span>
+                            <span class="value-arrow">→</span>
+                            <span class="value-simplified" id="compareSimplifiedFaces">-</span>
+                        </div>
+                        <div class="compare-change" id="compareFaceChange">-</div>
+                    </div>
+
+                    <div class="compare-item highlight">
+                        <div class="compare-label">简化率</div>
+                        <div class="compare-values">
+                            <span class="value-original">-</span>
+                            <span class="value-arrow">→</span>
+                            <span class="value-simplified" id="compareRatio">-</span>
+                        </div>
+                        <div class="compare-change">-</div>
+                    </div>
+                </div>
+
+                <button id="downloadSimplifiedBtn" class="btn-secondary">
+                    <span>📥</span> 下载简化后模型
+                </button>
+            </div>
+
+            <div class="card" id="simplifySection" style="display: none;">
+                <div class="card-header">
+                    <div class="card-icon simplify">⚡</div>
+                    <span class="card-title">模型简化</span>
+                </div>
+                <div class="simplify-control">
+                    <label class="label-row">
+                        <span>简化比例</span>
+                        <span id="reductionValue">0.5</span>
+                    </label>
+                    <input type="range" id="reductionSlider" min="0" max="0.95" step="0.01" value="0.5">
+                    <div class="preset-buttons">
+                        <button class="preset-btn" data-value="0.2">低 (20%)</button>
+                        <button class="preset-btn" data-value="0.5">中 (50%)</button>
+                        <button class="preset-btn" data-value="0.8">高 (80%)</button>
+                    </div>
+                    <div class="custom-input-wrapper">
+                        <label>自定义值：</label>
+                        <input type="number" id="customReductionInput" min="0" max="0.95" step="0.01" value="0.5">
+                    </div>
+                </div>
+                <button id="simplifyBtn" class="btn-primary">
+                    <span>⚡</span> 简化模型
+                </button>
+                <div id="simplifyStatus"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon display">🎨</div>
+                    <span class="card-title">显示选项</span>
+                </div>
+                <label class="label-row">
+                    <input type="checkbox" id="showOriginal" checked>
+                    <span>显示原模型</span>
+                </label>
+                <label class="label-row">
+                    <input type="checkbox" id="showSimplified" checked>
+                    <span>显示简化后模型</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="viewer">
+            <div class="page-tips">
+                <div class="tips-header">📋 操作步骤</div>
+                <div class="tips-steps">
+                    <div class="tips-step"><span class="step-num">1</span><span>上传STL/OBJ等模型文件</span></div>
+                    <div class="tips-step"><span class="step-num">2</span><span>等待模型加载和转换</span></div>
+                    <div class="tips-step"><span class="step-num">3</span><span>调整简化比例（0.1-0.9）</span></div>
+                    <div class="tips-step"><span class="step-num">4</span><span>点击"简化模型"按钮</span></div>
+                    <div class="tips-step"><span class="step-num">5</span><span>对比效果后下载</span></div>
+                </div>
+                <div class="tips-ratio">
+                    <span class="ratio-label">💡 简化比例建议：</span>
+                    <span class="ratio-item">3D打印：0.3-0.5</span>
+                    <span class="ratio-item">Web显示：0.5-0.7</span>
+                    <span class="ratio-item">快速预览：0.1-0.3</span>
+                </div>
+            </div>
+            <div id="canvasContainer"></div>
+            <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .sidebar-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: col-resize;
+            z-index: 10;
+            transition: background-color 0.2s ease;
+        }
+
+        .sidebar-resizer:hover,
+        .sidebar-resizer.dragging {
+            background-color: var(--primary-color);
+        }
+
+        .sidebar-resizer::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 40px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-resizer:hover::before,
+        .sidebar-resizer.dragging::before {
+            background-color: var(--primary-color);
+            height: 60px;
+        }
+
+        body.dragging {
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 4.5rem;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+        }
+
+        .format-section {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+        }
+
+        .format-header {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .format-tags {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .format-tag {
+            font-size: 1.1rem;
+            padding: 10px 12px;
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-radius: 8px;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            min-width: 60px;
+        }
+
+        .format-hint {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
+
+        .info-panel {
+            padding: 8px 0;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .simplify-control {
+            padding: 8px 0;
+        }
+
+        .simplify-control .label-row {
+            padding: 10px 12px;
+        }
+
+        .simplify-control #reductionValue {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .simplify-control input[type="range"] {
+            width: 100%;
+            height: 14px;
+            margin: 20px 0;
+            border-radius: 7px;
+            background: var(--bg-dark);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .simplify-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            border: 4px solid white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .preset-btn {
+            flex: 1;
+            padding: 10px 15px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .preset-btn:active {
+            transform: translateY(0);
+        }
+
+        .preset-btn.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .custom-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .custom-input-wrapper label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .custom-input-wrapper input[type="number"] {
+            flex: 1;
+            padding: 10px 15px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .custom-input-wrapper input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+
+        .label-row:hover {
+            background: var(--bg-hover);
+        }
+
+        .label-row input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .label-row span {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 22px 36px;
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .btn-secondary:hover {
+            background: #16a34a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .compare-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .compare-item {
+            background: linear-gradient(145deg, rgba(30, 30, 50, 0.9), rgba(40, 40, 60, 0.7));
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .compare-item:hover {
+            background: linear-gradient(145deg, rgba(40, 40, 60, 0.9), rgba(50, 50, 70, 0.7));
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .compare-item.highlight {
+            background: linear-gradient(145deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.15));
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .compare-label {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .compare-values {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .value-original {
+            color: var(--text-primary);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .value-arrow {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            font-weight: 300;
+        }
+
+        .value-simplified {
+            color: #4ade80;
+            min-width: 80px;
+            text-align: left;
+        }
+
+        .compare-change {
+            text-align: center;
+            margin-top: 10px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .compare-change.change-negative {
+            color: #4ade80;
+            background: rgba(74, 222, 128, 0.15);
+        }
+
+        .compare-change.change-positive {
+            color: #f87171;
+            background: rgba(248, 113, 113, 0.15);
+        }
+
+        .compare-change.change-neutral {
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .page-tips {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 10;
+            min-width: 240px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .tips-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tips-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tips-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .step-num {
+            width: 22px;
+            height: 22px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .tips-ratio {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .ratio-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .ratio-item {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            color: var(--text-secondary);
+        }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/STLLoader.js"></script>
+    <script src="{{ url_for('static', filename='js/simplify.js') }}"></script>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ 帮助指南</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="help-card">
+                    <h3>📊 模型查看</h3>
+                    <p>支持拖放或点击上传 STL、OBJ、3MF、PLY、OFF、DAE、GLTF、STEP/STP 等格式的3D模型文件。</p>
+                    <ul>
+                        <li>上传后可在3D视图中旋转、缩放模型</li>
+                        <li>可切换线框模式和包围盒显示</li>
+                        <li>支持模型信息显示</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>⚡ 模型简化</h3>
+                    <p>减少3D模型的面数，同时尽量保持模型外观。</p>
+                    <ul>
+                        <li>调整简化比例（0.1 - 0.9）</li>
+                        <li>数值越小，简化程度越高</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🔄 格式转换</h3>
+                    <p>将3D模型从一种格式转换为另一种格式。</p>
+                    <ul>
+                        <li>支持输入：3MF, OBJ, STL, STEP, STP</li>
+                        <li>支持输出：STL, OBJ, 3MF</li>
+                        <li>可自定义输出文件名</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>📐 STEP 分析</h3>
+                    <p>上传 STEP 文件进行面分析和模型查看。</p>
+                    <ul>
+                        <li>查看模型所有面的面积</li>
+                        <li>点击面可查看几何信息</li>
+                        <li>支持导出为 GLTF/GLB 格式</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🎭 主题设置</h3>
+                    <p>自定义界面外观主题。</p>
+                    <ul>
+                        <li>支持浅色/深色模式切换</li>
+                        <li>可自定义主题颜色</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('helpModal');
+        var helpBtn = document.getElementById('helpBtn');
+        var closeBtn = modal.querySelector('.close');
+
+        if (helpBtn && modal) {
+            helpBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.style.display = 'block';
+            });
+
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(e) {
+                if (e.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const resizer = document.getElementById('sidebarResizer');
+        let isDragging = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const minWidth = 280;
+        const maxWidth = 600;
+
+        resizer.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startWidth = sidebar.offsetWidth;
+            resizer.classList.add('dragging');
+            document.body.classList.add('dragging');
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+            e.preventDefault();
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - startX;
+            let newWidth = startWidth + deltaX;
+
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+            sidebar.style.width = newWidth + 'px';
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            resizer.classList.remove('dragging');
+            document.body.classList.remove('dragging');
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    });
+    </script>
+</body>
+</html>

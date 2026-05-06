@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 模型处理工具</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</head>
+<body class="default-theme">
+    <script>loadAndApplyTheme();</script>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>3D Model Tool</h1>
+                <p>专业的 3D 模型处理工具</p>
+            </div>
+
+            <div class="nav-links">
+                <a href="/" class="nav-link active">🏠 首页</a>
+                <a href="/viewer" class="nav-link">📊 模型查看</a>
+                <a href="/simplify" class="nav-link">⚡ 模型简化</a>
+                <a href="/convert" class="nav-link">🔄 格式转换</a>
+                <a href="/step" class="nav-link">📐 STEP 分析</a>
+                <a href="/theme" class="nav-link">🎭 主题设置</a>
+                <a href="#" class="nav-link" id="helpBtn">❓ 帮助</a>
+                <a href="#" class="nav-link" id="guideBtn">🚀 教程</a>
+            </div>
+            <div class="sidebar-resizer" id="sidebarResizer"></div>
+        </div>
+
+        <div class="viewer">
+            <div class="landing-content">
+                <h2>欢迎使用 3D 模型处理工具</h2>
+                <p>选择左侧菜单中的功能开始使用</p>
+                
+                <div class="feature-cards">
+                    <div class="feature-card" data-card="viewer">
+                        <div class="feature-icon">📊</div>
+                        <h3>模型查看</h3>
+                        <p>上传并查看3D模型，支持15+格式</p>
+                        <a href="/viewer" class="btn-primary">开始使用</a>
+                    </div>
+                    
+                    <div class="feature-card" data-card="simplify">
+                        <div class="feature-icon">⚡</div>
+                        <h3>模型简化</h3>
+                        <p>减少模型面数，优化模型大小</p>
+                        <a href="/simplify" class="btn-primary">开始使用</a>
+                    </div>
+                    
+                    <div class="feature-card" data-card="convert">
+                        <div class="feature-icon">🔄</div>
+                        <h3>格式转换</h3>
+                        <p>支持15+输入格式，转换为STL/OBJ/3MF</p>
+                        <a href="/convert" class="btn-primary">开始使用</a>
+                    </div>
+                    
+                    <div class="feature-card" data-card="step">
+                        <div class="feature-icon">📐</div>
+                        <h3>STEP 分析</h3>
+                        <p>上传STEP文件，查看面面积和几何信息</p>
+                        <a href="/step" class="btn-primary">开始使用</a>
+                    </div>
+                    
+                    <div class="feature-card" data-card="theme">
+                        <div class="feature-icon">🎭</div>
+                        <h3>主题设置</h3>
+                        <p>自定义界面外观，支持浅色/深色模式</p>
+                        <a href="/theme" class="btn-primary">开始使用</a>
+                    </div>
+                </div>
+                
+                <div class="formats-container">
+                    <h3 class="formats-title">支持的格式</h3>
+                    <div class="formats-grid">
+                        <div class="format-item">
+                            <div class="format-emoji">📐</div>
+                            <div class="format-name">STL</div>
+                        </div>
+                        <div class="format-item">
+                            <div class="format-emoji">📦</div>
+                            <div class="format-name">OBJ</div>
+                        </div>
+                        <div class="format-item">
+                            <div class="format-emoji">🎲</div>
+                            <div class="format-name">3MF</div>
+                        </div>
+                        <div class="format-item">
+                            <div class="format-emoji">🎨</div>
+                            <div class="format-name">PLY</div>
+                        </div>
+                        <div class="format-item">
+                            <div class="format-emoji">📏</div>
+                            <div class="format-name">OFF</div>
+                        </div>
+                        <div class="format-item">
+                            <div class="format-emoji">🗂️</div>
+                            <div class="format-name">DAE</div>
+                        </div>
+                        <div class="format-item">
+                            <div class="format-emoji">🌐</div>
+                            <div class="format-name">GLTF</div>
+                        </div>
+                        <div class="format-item">
+                            <div class="format-emoji">📏</div>
+                            <div class="format-name">STEP</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="guideModal" class="modal">
+        <div class="modal-content guide-content">
+            <div class="guide-header">
+                <div class="guide-progress">
+                    <span class="guide-step-num">第 <span id="currentStep">1</span> / <span id="totalSteps">5</span> 步</span>
+                    <div class="guide-progress-bar">
+                        <div class="guide-progress-fill" id="guideProgressFill"></div>
+                    </div>
+                </div>
+                <span class="close" id="closeGuide">&times;</span>
+            </div>
+            <div class="guide-body">
+                <div class="guide-step active" id="guideStep1">
+                    <div class="guide-icon">👋</div>
+                    <h2>欢迎使用 3D 模型处理工具！</h2>
+                    <p>这是一个专业的3D模型处理平台，可以帮助您查看、简化和转换3D模型文件。</p>
+                    <p class="guide-time">⏱️ 预计耗时：1分钟</p>
+                </div>
+                <div class="guide-step" id="guideStep2">
+                    <div class="guide-icon">📊</div>
+                    <h2>📊 模型查看</h2>
+                    <p>上传并查看您的3D模型，支持多种格式。</p>
+                    <ul class="guide-tips">
+                        <li><strong>支持格式：</strong>STL, OBJ, 3MF, PLY, OFF, DAE, GLTF, STEP/STP</li>
+                        <li><strong>操作：</strong>拖放或点击上传文件</li>
+                        <li><strong>交互：</strong>鼠标左键旋转，右键平移，滚轮缩放</li>
+                        <li><strong>显示：</strong>可切换线框模式和包围盒</li>
+                    </ul>
+                </div>
+                <div class="guide-step" id="guideStep3">
+                    <div class="guide-icon">⚡</div>
+                    <h2>⚡ 模型简化</h2>
+                    <p>减少3D模型的面数，优化文件大小。</p>
+                    <ul class="guide-tips">
+                        <li><strong>用途：</strong>简化3D打印或Web显示的模型</li>
+                        <li><strong>操作：</strong>上传模型，调整简化比例</li>
+                        <li><strong>比例：</strong>0.1-0.9，数值越小简化越多</li>
+                        <li><strong>对比：</strong>可对比原模型和简化后模型的差异</li>
+                    </ul>
+                </div>
+                <div class="guide-step" id="guideStep4">
+                    <div class="guide-icon">🔄</div>
+                    <h2>🔄 格式转换</h2>
+                    <p>将3D模型从一种格式转换为另一种格式。</p>
+                    <ul class="guide-tips">
+                        <li><strong>输入：</strong>3MF, OBJ, STL, STEP, STP</li>
+                        <li><strong>输出：</strong>STL, OBJ, 3MF</li>
+                        <li><strong>批量：</strong>可一次选择多种输出格式</li>
+                        <li><strong>命名：</strong>支持自定义输出文件名</li>
+                    </ul>
+                </div>
+                <div class="guide-step" id="guideStep5">
+                    <div class="guide-icon">📐</div>
+                    <h2>📐 STEP 分析</h2>
+                    <p>上传STEP文件，分析面的面积和几何信息。</p>
+                    <ul class="guide-tips">
+                        <li><strong>分析：</strong>查看模型所有面的面积</li>
+                        <li><strong>颜色：</strong>可自定义模型颜色</li>
+                        <li><strong>导出：</strong>支持导出为GLTF/GLB格式</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="guide-footer">
+                <button class="guide-btn guide-btn-skip" id="skipGuide">跳过教程</button>
+                <button class="guide-btn guide-btn-prev" id="prevStep" style="display: none;">← 上一步</button>
+                <button class="guide-btn guide-btn-next" id="nextStep">下一步 →</button>
+                <button class="guide-btn guide-btn-done" id="doneGuide" style="display: none;">开始使用 🎉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ 帮助指南</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="help-card">
+                    <h3>📊 模型查看</h3>
+                    <p>支持拖放或点击上传 STL、OBJ、3MF、PLY、OFF、DAE、GLTF、STEP/STP 等格式的3D模型文件。</p>
+                    <ul>
+                        <li>上传后可在3D视图中旋转、缩放模型</li>
+                        <li>可切换线框模式和包围盒显示</li>
+                        <li>支持模型信息显示</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>⚡ 模型简化</h3>
+                    <p>减少3D模型的面数，同时尽量保持模型外观。</p>
+                    <ul>
+                        <li>调整简化比例（0.1 - 0.9）</li>
+                        <li>数值越小，简化程度越高</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🔄 格式转换</h3>
+                    <p>将3D模型从一种格式转换为另一种格式。</p>
+                    <ul>
+                        <li>支持输入：3MF, OBJ, STL, STEP, STP</li>
+                        <li>支持输出：STL, OBJ, 3MF</li>
+                        <li>可自定义输出文件名</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>📐 STEP 分析</h3>
+                    <p>上传 STEP 文件进行面分析和模型查看。</p>
+                    <ul>
+                        <li>查看模型所有面的面积</li>
+                        <li>点击面可查看几何信息</li>
+                        <li>支持导出为 GLTF/GLB 格式</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🎭 主题设置</h3>
+                    <p>自定义界面外观主题。</p>
+                    <ul>
+                        <li>支持浅色/深色模式切换</li>
+                        <li>可自定义主题颜色</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('helpModal');
+        var helpBtn = document.getElementById('helpBtn');
+        var closeBtn = modal.querySelector('.close');
+
+        helpBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.style.display = 'block';
+        });
+
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+
+        window.addEventListener('click', function(e) {
+            if (e.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const resizer = document.getElementById('sidebarResizer');
+        const container = document.querySelector('.container');
+        let isDragging = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const minWidth = 280;
+        const maxWidth = 600;
+
+        resizer.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startWidth = sidebar.offsetWidth;
+            resizer.classList.add('dragging');
+            document.body.classList.add('dragging');
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+            e.preventDefault();
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - startX;
+            let newWidth = startWidth + deltaX;
+
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+            sidebar.style.width = newWidth + 'px';
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            resizer.classList.remove('dragging');
+            document.body.classList.remove('dragging');
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    if (window.location.pathname === '/') {
+        const bgScene = new THREE.Scene();
+        const bgCamera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        bgCamera.position.z = 5;
+        const bgRenderer = new THREE.WebGLRenderer({ alpha: true });
+        bgRenderer.setSize(window.innerWidth, window.innerHeight);
+        bgRenderer.domElement.style.position = 'absolute';
+        bgRenderer.domElement.style.top = '0';
+        bgRenderer.domElement.style.left = '0';
+        bgRenderer.domElement.style.zIndex = '-1';
+        document.querySelector('.viewer').appendChild(bgRenderer.domElement);
+
+        const particles = new THREE.BufferGeometry();
+        const count = 1200;
+        const positions = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
+        
+        for (let i = 0; i < count * 3; i += 3) {
+            positions[i] = (Math.random() - 0.5) * 12;
+            positions[i+1] = (Math.random() - 0.5) * 8;
+            positions[i+2] = (Math.random() - 0.5) * 6;
+            
+            colors[i] = 0.99;
+            colors[i+1] = 0.99;
+            colors[i+2] = 1.0;
+        }
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        particles.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        
+        const material = new THREE.PointsMaterial({ 
+            color: 0x818cf8, 
+            size: 0.04,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            sizeAttenuation: true
+        });
+        const points = new THREE.Points(particles, material);
+        bgScene.add(points);
+
+        let time = 0;
+        function animateBg() {
+            requestAnimationFrame(animateBg);
+            time += 0.0003;
+            points.rotation.y += 0.0003;
+            points.rotation.x = Math.sin(time) * 0.1;
+            bgRenderer.render(bgScene, bgCamera);
+        }
+        animateBg();
+
+        window.addEventListener('resize', function() {
+            bgCamera.aspect = window.innerWidth / window.innerHeight;
+            bgCamera.updateProjectionMatrix();
+            bgRenderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    }
+    </script>
+
+    <style>
+    .guide-content {
+        max-width: 600px;
+        padding: 0;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .guide-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+    }
+
+    .guide-progress {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .guide-step-num {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .guide-progress-bar {
+        width: 120px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .guide-progress-fill {
+        height: 100%;
+        background: white;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+        width: 20%;
+    }
+
+    .guide-header .close {
+        color: white;
+        font-size: 2rem;
+        opacity: 0.8;
+    }
+
+    .guide-header .close:hover {
+        opacity: 1;
+    }
+
+    .guide-body {
+        padding: 32px 28px;
+        min-height: 320px;
+    }
+
+    .guide-step {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .guide-step.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .guide-icon {
+        font-size: 4rem;
+        margin-bottom: 16px;
+    }
+
+    .guide-step h2 {
+        font-size: 1.8rem;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+    }
+
+    .guide-step p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 8px;
+    }
+
+    .guide-time {
+        font-size: 0.95rem !important;
+        color: var(--primary-color) !important;
+        margin-top: 16px !important;
+    }
+
+    .guide-tips {
+        margin-top: 16px;
+        padding-left: 0;
+        list-style: none;
+    }
+
+    .guide-tips li {
+        padding: 10px 14px;
+        background: var(--bg-hover);
+        border-radius: 8px;
+        margin-bottom: 8px;
+        font-size: 1rem;
+        color: var(--text-primary);
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .guide-tips li strong {
+        color: var(--primary-color);
+    }
+
+    .guide-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .guide-btn {
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .guide-btn-skip {
+        background: transparent;
+        color: var(--text-secondary);
+    }
+
+    .guide-btn-skip:hover {
+        color: var(--text-primary);
+    }
+
+    .guide-btn-prev {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .guide-btn-prev:hover {
+        border-color: var(--primary-color);
+    }
+
+    .guide-btn-next,
+    .guide-btn-done {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+        color: white;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    }
+
+    .guide-btn-next:hover,
+    .guide-btn-done:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+    }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const guideModal = document.getElementById('guideModal');
+        const guideBtn = document.getElementById('guideBtn');
+        const closeGuide = document.getElementById('closeGuide');
+        const skipGuide = document.getElementById('skipGuide');
+        const prevStep = document.getElementById('prevStep');
+        const nextStep = document.getElementById('nextStep');
+        const doneGuide = document.getElementById('doneGuide');
+        const currentStepEl = document.getElementById('currentStep');
+        const guideProgressFill = document.getElementById('guideProgressFill');
+
+        const totalSteps = 5;
+        let step = 1;
+
+        function showStep(stepNum) {
+            document.querySelectorAll('.guide-step').forEach(s => s.classList.remove('active'));
+            document.getElementById('guideStep' + stepNum).classList.add('active');
+            currentStepEl.textContent = stepNum;
+            guideProgressFill.style.width = ((stepNum / totalSteps) * 100) + '%';
+
+            prevStep.style.display = stepNum > 1 ? 'inline-block' : 'none';
+            nextStep.style.display = stepNum < totalSteps ? 'inline-block' : 'none';
+            doneGuide.style.display = stepNum === totalSteps ? 'inline-block' : 'none';
+        }
+
+        function openGuide() {
+            step = 1;
+            showStep(step);
+            guideModal.style.display = 'block';
+        }
+
+        function closeGuideModal() {
+            guideModal.style.display = 'none';
+            localStorage.setItem('guideCompleted', 'true');
+        }
+
+        if (guideBtn) {
+            guideBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                openGuide();
+            });
+        }
+
+        if (closeGuide) {
+            closeGuide.addEventListener('click', closeGuideModal);
+        }
+
+        if (skipGuide) {
+            skipGuide.addEventListener('click', closeGuideModal);
+        }
+
+        if (doneGuide) {
+            doneGuide.addEventListener('click', closeGuideModal);
+        }
+
+        if (prevStep) {
+            prevStep.addEventListener('click', function() {
+                if (step > 1) {
+                    step--;
+                    showStep(step);
+                }
+            });
+        }
+
+        if (nextStep) {
+            nextStep.addEventListener('click', function() {
+                if (step < totalSteps) {
+                    step++;
+                    showStep(step);
+                }
+            });
+        }
+
+        window.addEventListener('click', function(e) {
+            if (e.target == guideModal) {
+                closeGuideModal();
+            }
+        });
+
+        if (!localStorage.getItem('guideCompleted')) {
+            setTimeout(openGuide, 500);
+        }
+    });
+    </script>
+</body>
+</html>

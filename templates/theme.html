@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主题设置 - 3D Model Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</head>
+<body class="default-theme">
+    <script>loadAndApplyTheme();</script>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>3D Model Tool</h1>
+                <p>专业的 3D 模型处理工具</p>
+            </div>
+
+            <div class="nav-links">
+                <a href="/" class="nav-link">🏠 首页</a>
+                <a href="/viewer" class="nav-link">📊 模型查看</a>
+                <a href="/simplify" class="nav-link">⚡ 模型简化</a>
+                <a href="/convert" class="nav-link">🔄 格式转换</a>
+                <a href="/step" class="nav-link">📐 STEP 分析</a>
+                <a href="/theme" class="nav-link active">🎭 主题设置</a>
+                <a href="#" class="nav-link" id="helpBtn">❓ 帮助</a>
+            </div>
+            <div class="sidebar-resizer" id="sidebarResizer"></div>
+        </div>
+
+        <div class="viewer">
+            <div class="page-tips">
+                <div class="tips-header">📋 操作步骤</div>
+                <div class="tips-steps">
+                    <div class="tips-step"><span class="step-num">1</span><span>浏览主题列表</span></div>
+                    <div class="tips-step"><span class="step-num">2</span><span>点击喜欢的主题</span></div>
+                    <div class="tips-step"><span class="step-num">3</span><span>主题即时预览应用</span></div>
+                    <div class="tips-step"><span class="step-num">4</span><span>自动保存到本地</span></div>
+                </div>
+                <div class="tips-theme-types">
+                    <span class="types-label">🎨 主题分类：</span>
+                    <span class="type-item">精选主题：现代、玻璃、苹果、Bento</span>
+                    <span class="type-item">经典主题：默认、明亮、深色</span>
+                    <span class="type-item">特色主题：海洋、日落、森林、赛博</span>
+                </div>
+            </div>
+            <div class="theme-content">
+                <div class="page-header">
+                    <h1>🎨 主题设置</h1>
+                    <p>选择您喜欢的界面风格</p>
+                </div>
+
+                <div class="theme-section">
+                    <h2 class="section-title">精选主题</h2>
+                    <div class="theme-grid featured">
+                        <button id="theme-modern" class="theme-card featured-card">
+                            <div class="theme-preview modern-preview">
+                                <div class="preview-gradient"></div>
+                                <div class="preview-shine"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">干净现代</div>
+                                <div class="theme-desc">浅色 + 大留白 + 柔和阴影</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-glass" class="theme-card featured-card">
+                            <div class="theme-preview glass-preview">
+                                <div class="preview-gradient"></div>
+                                <div class="preview-shine"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">毛玻璃科技</div>
+                                <div class="theme-desc">半透明面板 + 霓虹光效</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-apple" class="theme-card featured-card">
+                            <div class="theme-preview apple-preview">
+                                <div class="preview-gradient"></div>
+                                <div class="preview-shine"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">苹果风格</div>
+                                <div class="theme-desc">系统字体 + 圆润卡片</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-bento" class="theme-card featured-card">
+                            <div class="theme-preview bento-preview">
+                                <div class="preview-gradient"></div>
+                                <div class="preview-shine"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">Bento 风</div>
+                                <div class="theme-desc">网格布局 + 鲜亮渐变</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="theme-section">
+                    <h2 class="section-title">经典主题</h2>
+                    <div class="theme-grid classic">
+                        <button id="theme-default" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color default"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">默认主题</div>
+                                <div class="theme-desc">中等亮度暗色主题</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-light" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color light"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">明亮主题</div>
+                                <div class="theme-desc">适合白天使用</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-dark" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color dark"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">深色主题</div>
+                                <div class="theme-desc">适合夜间使用</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-ocean" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color ocean"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">海洋主题</div>
+                                <div class="theme-desc">清爽的青色调</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-sunset" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color sunset"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">日落主题</div>
+                                <div class="theme-desc">温暖的橙色调</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-forest" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color forest"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">森林主题</div>
+                                <div class="theme-desc">清新的绿色调</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-violet" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color violet"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">紫罗兰主题</div>
+                                <div class="theme-desc">优雅的紫色调</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-cyber" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color cyber"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">赛博朋克</div>
+                                <div class="theme-desc">霓虹科技风格</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+
+                        <button id="theme-retro" class="theme-card">
+                            <div class="theme-preview">
+                                <div class="theme-color retro"></div>
+                            </div>
+                            <div class="theme-info">
+                                <div class="theme-name">复古主题</div>
+                                <div class="theme-desc">怀旧暖色调</div>
+                            </div>
+                            <div class="theme-check">✓</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="current-theme-info">
+                    当前主题: <span id="currentThemeName">默认主题</span>
+                </div>
+
+                <div class="theme-tips">
+                    <div class="tips-card">
+                        <div class="tips-icon">💡</div>
+                        <div class="tips-text">
+                            主题设置会自动保存，下次访问时会自动应用您选择的主题。点击主题卡片即可即时预览效果。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .sidebar-resizer {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            cursor: col-resize;
+            z-index: 10;
+            transition: background-color 0.2s ease;
+        }
+
+        .sidebar-resizer:hover,
+        .sidebar-resizer.dragging {
+            background-color: var(--primary-color);
+        }
+
+        .sidebar-resizer::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 40px;
+            background-color: var(--border-color);
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-resizer:hover::before,
+        .sidebar-resizer.dragging::before {
+            background-color: var(--primary-color);
+            height: 60px;
+        }
+
+        body.dragging {
+            cursor: col-resize;
+            user-select: none;
+        }
+
+        .theme-content {
+            padding: 40px;
+            overflow-y: auto;
+            height: 100%;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+        }
+
+        .theme-section {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            padding-left: 12px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .theme-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .theme-grid.featured {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .theme-grid.classic {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .theme-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 18px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .theme-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .theme-card:hover::before {
+            left: 100%;
+        }
+
+        .theme-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .theme-card.active {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .featured-card {
+            min-height: 200px;
+        }
+
+        .theme-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .featured-card .theme-preview {
+            width: 100%;
+            height: 120px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+        }
+
+        .preview-gradient {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+        }
+
+        .preview-shine {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 150%; }
+        }
+
+        .modern-preview .preview-gradient {
+            background: linear-gradient(135deg, #f5f6f8 0%, #e8eaf0 50%, #6b7fd4 100%);
+        }
+
+        .glass-preview .preview-gradient {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #7dd3e8 100%);
+        }
+
+        .apple-preview .preview-gradient {
+            background: linear-gradient(135deg, #f0f1f3 0%, #f5f5f7 50%, #5a8ac9 100%);
+        }
+
+        .bento-preview .preview-gradient {
+            background: linear-gradient(135deg, #1e1e24 0%, #8b7ec8 50%, #c87ea0 100%);
+        }
+
+        .theme-color {
+            width: 100%;
+            height: 100%;
+        }
+
+        .theme-color.default {
+            background: linear-gradient(135deg, #1e293b, #334155);
+        }
+
+        .theme-color.light {
+            background: linear-gradient(135deg, #ffffff, #f1f5f9);
+        }
+
+        .theme-color.dark {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+        }
+
+        .theme-color.ocean {
+            background: linear-gradient(135deg, #0c1524, #06b6d4);
+        }
+
+        .theme-color.sunset {
+            background: linear-gradient(135deg, #1c1917, #f97316);
+        }
+
+        .theme-color.forest {
+            background: linear-gradient(135deg, #0d1b12, #22c55e);
+        }
+
+        .theme-color.violet {
+            background: linear-gradient(135deg, #1a122e, #a855f7);
+        }
+
+        .theme-color.cyber {
+            background: linear-gradient(135deg, #0a0a0f, #00f5d4);
+        }
+
+        .theme-color.retro {
+            background: linear-gradient(135deg, #2d1b0e, #fbbf24);
+        }
+
+        .theme-info {
+            text-align: center;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .theme-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .theme-desc {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .theme-check {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 32px;
+            height: 32px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            transform: scale(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .theme-card.active .theme-check {
+            display: flex;
+            transform: scale(1);
+        }
+
+        .current-theme-info {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            padding: 16px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.4s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        .current-theme-info span {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .theme-tips {
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .tips-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+
+        .tips-card:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateX(4px);
+        }
+
+        .tips-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .tips-text {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            transition: color 0.3s ease;
+        }
+
+        .page-tips {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 10;
+            min-width: 240px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .tips-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tips-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tips-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .step-num {
+            width: 22px;
+            height: 22px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .tips-theme-types {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .types-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .type-item {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 1200px) {
+            .theme-grid.featured {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .theme-grid.classic {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .theme-grid.featured,
+            .theme-grid.classic {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <script>
+        const themeNames = {
+            'default': '默认主题',
+            'light': '明亮主题',
+            'dark': '深色主题',
+            'ocean': '海洋主题',
+            'sunset': '日落主题',
+            'forest': '森林主题',
+            'violet': '紫罗兰主题',
+            'cyber': '赛博朋克',
+            'retro': '复古主题',
+            'minimal': '极简主题',
+            'simple-white': '纯白简约',
+            'simple-gray': '灰色简约',
+            'simple-blue': '深蓝简约',
+            'simple-mint': '薄荷简约',
+            'simple-coral': '珊瑚简约',
+            'modern': '干净现代',
+            'glass': '毛玻璃科技',
+            'apple': '苹果风格',
+            'bento': 'Bento 风'
+        };
+
+        function setTheme(themeName) {
+            applyTheme(themeName);
+            
+            document.getElementById('currentThemeName').textContent = themeNames[themeName];
+            
+            document.querySelectorAll('.theme-card').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeCard = document.getElementById('theme-' + themeName);
+            if (activeCard) {
+                activeCard.classList.add('active');
+                activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const themeName = this.id.replace('theme-', '');
+                    setTheme(themeName);
+                });
+            });
+
+            const savedTheme = localStorage.getItem('theme') || 'default';
+            setTheme(savedTheme);
+        });
+    </script>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ 帮助指南</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="help-card">
+                    <h3>📊 模型查看</h3>
+                    <p>支持拖放或点击上传 STL、OBJ、3MF、PLY、OFF、DAE、GLTF、STEP/STP 等格式的3D模型文件。</p>
+                    <ul>
+                        <li>上传后可在3D视图中旋转、缩放模型</li>
+                        <li>可切换线框模式和包围盒显示</li>
+                        <li>支持模型信息显示</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>⚡ 模型简化</h3>
+                    <p>减少3D模型的面数，同时尽量保持模型外观。</p>
+                    <ul>
+                        <li>调整简化比例（0.1 - 0.9）</li>
+                        <li>数值越小，简化程度越高</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🔄 格式转换</h3>
+                    <p>将3D模型从一种格式转换为另一种格式。</p>
+                    <ul>
+                        <li>支持输入：3MF, OBJ, STL, STEP, STP</li>
+                        <li>支持输出：STL, OBJ, 3MF</li>
+                        <li>可自定义输出文件名</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>📐 STEP 分析</h3>
+                    <p>上传 STEP 文件进行面分析和模型查看。</p>
+                    <ul>
+                        <li>查看模型所有面的面积</li>
+                        <li>点击面可查看几何信息</li>
+                        <li>支持导出为 GLTF/GLB 格式</li>
+                    </ul>
+                </div>
+
+                <div class="help-card">
+                    <h3>🎭 主题设置</h3>
+                    <p>自定义界面外观主题。</p>
+                    <ul>
+                        <li>支持浅色/深色模式切换</li>
+                        <li>可自定义主题颜色</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('helpModal');
+        var helpBtn = document.getElementById('helpBtn');
+        var closeBtn = modal.querySelector('.close');
+
+        if (helpBtn && modal) {
+            helpBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.style.display = 'block';
+            });
+
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', function(e) {
+                if (e.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const resizer = document.getElementById('sidebarResizer');
+        let isDragging = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const minWidth = 280;
+        const maxWidth = 600;
+
+        resizer.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX;
+            startWidth = sidebar.offsetWidth;
+            resizer.classList.add('dragging');
+            document.body.classList.add('dragging');
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+
+            e.preventDefault();
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+
+            const deltaX = e.clientX - startX;
+            let newWidth = startWidth + deltaX;
+
+            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+
+            sidebar.style.width = newWidth + 'px';
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            resizer.classList.remove('dragging');
+            document.body.classList.remove('dragging');
+
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    });
+    </script>
+</body>
+</html>
