@@ -10,6 +10,8 @@ A Flask + Three.js based 3D model processing web application.
 
 This is a powerful 3D model processing tool with core features including model viewing, simplification, format conversion, and STEP file analysis. It supports multiple mainstream 3D formats with beautiful UI themes and a comprehensive onboarding system.
 
+
+![image1](https://github.com/BrepMaster/3D-Model-Processing-Tool/raw/main/1.png)
 **核心功能 / Core Features:**
 - 🎨 **3D 可视化** - 实时渲染和交互查看
 - ⚡ **模型简化** - 智能减少面数优化模型
